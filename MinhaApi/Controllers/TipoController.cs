@@ -1,4 +1,4 @@
-using MinhaApi.Models;
+/*using MinhaApi.Models;
 using MinhaApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -72,4 +72,4 @@ public class TipoController : ControllerBase
 
         return NoContent();
     }
-}
+}*/
