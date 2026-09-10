@@ -12,10 +12,18 @@ builder.Services.AddScoped<
     IProdutoRepository,
     ProdutoRepository>();
 
+builder.Services.AddScoped<
+    IClienteRepository,
+    ClienteRepository>();
+
 // Registra a Service
 builder.Services.AddScoped<
     IProdutoService,
     ProdutoService>();
+    
+builder.Services.AddScoped<
+    IClienteService,
+    ClienteService>();
 
 var app = builder.Build();
 

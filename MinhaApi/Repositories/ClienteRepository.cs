@@ -10,8 +10,7 @@ public class ClienteRepository: IClienteRepository {
 
   private static List<Cliente> _db = new()
   {
-    new Cliente { Id=1, Nome="Billy dos Santos", Email="billyzinho@hotmail.com", Cpf= "08998655656" },
-    new Cliente { Id=1, Nome="Luan Santana", Email="cantorglobo@gmail.com", Cpf= "79665977855" }
+      
   };
 
   public IEnumerable<Cliente> GetAll()
@@ -36,8 +35,35 @@ public class ClienteRepository: IClienteRepository {
       return lista;
   }
   
-  public Cliente? GetById(int id) //Parei AQUI!! SEXTOUUU!!!!!
-      => _db.FirstOrDefault(c => c.Id == id);
+  public Cliente? GetById(int id)
+
+    {
+    using var conn = new MySqlConnection(_connectionString);
+    conn.Open();
+
+    string sql = @"SELECT id, nome, email, cpf, ativo
+                   FROM cliente
+                   WHERE id = @Id";
+
+    using var cmd = new MySqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@Id", id);
+
+    using var reader = cmd.ExecuteReader();
+
+    if (reader.Read())
+    {
+        return new Cliente
+        {
+            Id = reader.GetInt32("id"),
+            Nome = reader.GetString("nome"),
+            Email = reader.GetString("email"),
+            Cpf = reader.GetString("cpf"),
+            Ativo = reader.GetBoolean("ativo")
+        };
+    }
+    return null;
+    }
+      
 
   public void Add(Cliente c)
   {
@@ -63,7 +89,7 @@ public class ClienteRepository: IClienteRepository {
       using var conn = new MySqlConnection(_connectionString);
       conn.Open();
       string sql = @"UPDATE cliente
-                    SET nome = @Nome, email = @Email, cpf @Cpf, ativo @Ativo
+                    SET nome = @Nome, email = @Email, cpf = @Cpf
                     WHERE id = @Id";
 
       using var cmd = new MySqlCommand(sql, conn);
@@ -71,7 +97,6 @@ public class ClienteRepository: IClienteRepository {
       cmd.Parameters.AddWithValue("@Nome", c.Nome);
       cmd.Parameters.AddWithValue("@Email", c.Email);
       cmd.Parameters.AddWithValue("@Cpf", c.Cpf);
-      cmd.Parameters.AddWithValue("@Ativo", c.Ativo);
       cmd.ExecuteNonQuery();
   }
 
@@ -79,7 +104,7 @@ public class ClienteRepository: IClienteRepository {
     {
         using var conn = new MySqlConnection(_connectionString);
         conn.Open();
-        string sql = "UPDATE cliente SET ativo = 0 WHERE id = @Id";
+        string sql = "UPDATE cliente SET ativo = false WHERE id = @Id";
         using var cmd = new MySqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("@Id", id);
         cmd.ExecuteNonQuery();
