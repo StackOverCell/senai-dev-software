@@ -9,4 +9,6 @@ public interface IProdutoRepository
     void Add(Produto produto);
     void Update(Produto produto);
     void Delete(int id);
+
+    void DiminuirEstoque(int produtoId, int quantidade);
 }

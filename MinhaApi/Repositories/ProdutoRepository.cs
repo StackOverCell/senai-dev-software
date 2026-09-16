@@ -8,12 +8,6 @@ public class ProdutoRepository: IProdutoRepository {
     public ProdutoRepository(IConfiguration config)
     => _connectionString = config.GetConnectionString("DefaultConnection")!;
 
-  private static List<Produto> _db = new()
-  {
-    new Produto { Id=1, Nome="Notebook", Preco=2500m, Estoque=10 },
-    new Produto { Id=2, Nome="Mouse", Preco=89.90m, Estoque=50 }
-  };
-
   public IEnumerable<Produto> GetAll()
   {
       var lista = new List<Produto>();
@@ -37,7 +31,33 @@ public class ProdutoRepository: IProdutoRepository {
   }
   
   public Produto? GetById(int id)
-      => _db.FirstOrDefault(p => p.Id == id);
+  {
+      using var conn = new MySqlConnection(_connectionString);
+      conn.Open();
+
+      string sql = @"SELECT id, nome, preco, estoque, ativo
+                     FROM produtos
+                     WHERE id = @Id";
+
+      using var cmd = new MySqlCommand(sql, conn);
+      cmd.Parameters.AddWithValue("@Id", id);
+
+      using var reader = cmd.ExecuteReader();
+
+      if (reader.Read())
+      {
+          return new Produto
+          {
+              Id = reader.GetInt32("id"),
+              Nome = reader.GetString("nome"),
+              Preco = reader.GetDecimal("preco"),
+              Estoque = reader.GetInt32("estoque"),
+              Ativo = reader.GetBoolean("ativo")
+          };
+      }
+
+      return null;
+  }
 
   public void Add(Produto p)
   {
@@ -63,8 +83,11 @@ public class ProdutoRepository: IProdutoRepository {
       using var conn = new MySqlConnection(_connectionString);
       conn.Open();
       string sql = @"UPDATE produtos
-                    SET nome = @Nome, preco = @Preco, estoque @Estoque, ativo @Ativo
-                    WHERE id = @Id";
+                   SET nome = @Nome,
+                   preco = @Preco,
+                   estoque = @Estoque,
+                   ativo = @Ativo
+                   WHERE id = @Id";
 
       using var cmd = new MySqlCommand(sql, conn);
       cmd.Parameters.AddWithValue("@Id", p.Id);
@@ -74,6 +97,24 @@ public class ProdutoRepository: IProdutoRepository {
       cmd.Parameters.AddWithValue("@Ativo", p.Ativo);
       cmd.ExecuteNonQuery();
   }
+
+    public void DiminuirEstoque(int produtoId, int quantidade)
+    {
+    using var conn = new MySqlConnection(_connectionString);
+    conn.Open();
+
+    string sql = @"UPDATE produtos
+                   SET estoque = estoque - @Quantidade
+                   WHERE id = @ProdutoId";
+
+    using var cmd = new MySqlCommand(sql, conn);
+
+    cmd.Parameters.AddWithValue("@Quantidade", quantidade);
+    cmd.Parameters.AddWithValue("@ProdutoId", produtoId);
+
+    cmd.ExecuteNonQuery();
+    }
+
 
   public void Delete(int id)
     {
