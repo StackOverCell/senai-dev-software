@@ -19,7 +19,7 @@ public class VendaService : IVendaService
         _vendaRepository = vendaRepository;
     }
 
-    public Venda RealizarVenda(int clienteId, int produtoId, int quantidade)
+    public Venda create(int clienteId, int produtoId, int quantidade)
     {
         if (quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
