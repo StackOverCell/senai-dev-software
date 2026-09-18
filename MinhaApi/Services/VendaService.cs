@@ -19,38 +19,47 @@ public class VendaService : IVendaService
         _vendaRepository = vendaRepository;
     }
 
-    public Venda create(int clienteId, int produtoId, int quantidade)
+    public VendaResponse create(VendaRequest vendaRequest)
     {
-        if (quantidade <= 0)
+        if (vendaRequest.Quantidade <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
 
-        var cliente = _clienteRepository.GetById(clienteId);
+        var cliente = _clienteRepository.GetById(vendaRequest.ClienteId);
 
         if (cliente == null || !cliente.Ativo)
             throw new ArgumentException("Cliente inexistente ou inativo.");
 
-        var produto = _produtoRepository.GetById(produtoId);
+        var produto = _produtoRepository.GetById(vendaRequest.ProdutoId);
 
         if (produto == null || !produto.Ativo)
             throw new ArgumentException("Produto inexistente ou inativo.");
 
-        if (produto.Estoque < quantidade)
+        if (produto.Estoque < vendaRequest.Quantidade)
             throw new ArgumentException("Estoque insuficiente.");
 
         var venda = new Venda
         {
-            ClienteId = cliente.Id,
-            ProdutoId = produto.Id,
+            ClienteId = vendaRequest.ClienteId,
+            ProdutoId = vendaRequest.ProdutoId,
+            Quantidade = vendaRequest.Quantidade,
             DataVenda = DateTime.Now,
-            Quantidade = quantidade,
-            ValorUnitario = produto.Preco,
-            ValorTotal = produto.Preco * quantidade
+            ValorTotal = produto.Preco * vendaRequest.Quantidade
         };
 
-        _produtoRepository.DiminuirEstoque(produto.Id, quantidade);
+        _produtoRepository.DiminuirEstoque(produto.Id, vendaRequest.Quantidade);
         _vendaRepository.Add(venda);
 
-        return venda;
+        Venda retorno = _vendaRepository.GetById(venda.Id);
+
+        return new VendaResponse
+        {
+            Id = retorno.Id,
+            DataVenda = retorno.DataVenda,
+            ValorUnitario = retorno.ValorUnitario,
+            ValorTotal = retorno.ValorTotal,
+            NomeCliente = cliente.Nome,
+            NomeProduto = produto.Nome
+        };
     }
 
     public IEnumerable<Venda> GetAll()

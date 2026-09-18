@@ -3,7 +3,7 @@ namespace MinhaApi.Services;
 
 public interface IVendaService
 {
-    Venda create(int clienteId, int produtoId, int quantidade);
+    VendaResponse create(VendaRequest vendaRequest);
     IEnumerable<Venda> GetAll();
     Venda? GetById(int id);
 }

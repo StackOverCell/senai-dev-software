@@ -16,15 +16,11 @@ public class VendaController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult create([FromBody] Venda venda)
+    public IActionResult create([FromBody] VendaRequest venda)
     {
         try
         {
-            var realizada = _service.create(
-                venda.ClienteId,
-                venda.ProdutoId,
-                venda.Quantidade
-            );
+            var realizada = _service.create(venda);
 
             return Ok(realizada);
         }
